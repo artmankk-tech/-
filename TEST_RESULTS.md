@@ -55,15 +55,27 @@ JavaScript構文チェックと `git diff --check` も実施しました。幅39
 
 タイマー検証は時計・期限を進めて実施しており、15分間の実時間待機や画面ロックを伴う検証ではありません。
 
-## 公開状況
+## 公開状況と公開URLでの検証
 
-2026-11-08に既存の公開URL https://artmankk-tech.github.io/-/ のHTTP 200とHTMLの応答を確認しました。既存コミットはmainに配置済みでした。今回の修正版の公開反映は、この変更のmainへのマージとPagesの再公開後に別途確認が必要です。
+2026-11-08に [PR #1](https://github.com/artmankk-tech/-/pull/1) をmainへマージしました。マージコミットは `62f360bddf6c0a76b1d79e147b45773af547a774` です。[GitHub Pagesの公開処理](https://github.com/artmankk-tech/-/actions/runs/42464642294) はsuccessで完了しました。
+
+公開URL **https://artmankk-tech.github.io/-/** を実際のChromiumで開き、`node tests/published.cjs` で次を確認しました。
+
+- HTTPSでHTTP 200。HTML・JS・CSS・service worker・manifest・両アイコンのSHA-256がテスト対象の修正版と一致
+- PWAのスコープが `https://artmankk-tech.github.io/-/` になり、service workerがページを制御
+- タッチ操作で仕事10 XP、プライベート25 XPを別々に記録し、再読み込み後も保持
+- 実際にダウンロードしたJSONの形式・ミッション・XPを確認。プライベート初期化後にそのJSONを復元し、両モードの記録を保持
+- 不正JSONを拒否し、保存原本を維持
+- 幅320・375・390・430・844pxでページ全体の横はみ出しなし
+- ブラウザのネットワークを切断し、クエリ付きホーム画面URLの読み込み、ミッション操作、再読み込み後の保持
+- JavaScript実行エラーなし
+
+この確認は、実際の公開URLと新しいブラウザ保存領域を使いました。利用者端末の記録には触れていません。旧版からの更新試験は前述のローカルHTTPでのv3→v4試験です。公開URLでの検証は新版の初回読み込みから実施しており、iPhone実機での旧版更新は未確認です。
 
 ## 未確認・未完了
 
 - iPhone実機・iOS Safariでの起動、ホーム画面への追加、ファイル保存・復元
 - iPhoneの画面ロック、アプリの終了・復帰、機内モードでのPWA起動
-- 今回の修正版を実際のGitHub Pages公開URLへ反映した後の動作
 - Linux WebKitでの検証。公式WebKitのダウンロード後に起動を試しましたが、環境に `libgtk-4`、`libgraphene-1.0`、`libharfbuzz-icu`、`libmanette-0.2`、`libhyphen`、`libGLESv2` がなく起動できませんでした。
 
 ## iPhone実機での最終確認

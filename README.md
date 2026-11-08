@@ -6,7 +6,7 @@
 
 リポジトリ：**https://github.com/artmankk-tech/-**
 
-2026-11-08に既存の公開URLのHTTP 200を確認しました。このREADMEを含む修正版は、mainへの反映とPagesの更新後に公開URLで利用できます。確認できた範囲と未確認項目は [TEST_RESULTS.md](TEST_RESULTS.md) を参照してください。
+2026-11-08にv4修正版をmainへマージし、GitHub Pagesで公開しました。公開URLで両モードの記録保持、JSONバックアップ・復元、オフライン操作と再起動を確認済みです。iPhone実機での最終確認は未完了です。詳しくは [TEST_RESULTS.md](TEST_RESULTS.md) を参照してください。
 
 ## iPhoneで始める
 
@@ -82,3 +82,5 @@ node tests/reliability.cjs
 `reliability.cjs` は一時HTTPサーバーを自動起動します。`/-/` サブパス、タッチ操作、実際のJSONダウンロード内容、保存失敗、破損データ保全、日付変更、v3→v4の更新を検証します。更新テストはGitから既存コミット `8c3fd31` を読み取るため、ZIPを展開しただけのフォルダーでは実行できません。
 
 既存テストは上の8000番サーバーを起動した状態で `node tests/browser.cjs` を実行します。システムの `/usr/bin/chromium` があれば使用し、なければPlaywrightのChromiumを使います。別の場所にある場合は `CHROMIUM_PATH` で指定できます。
+
+公開URLの確認には `node tests/published.cjs` を使います。新しいブラウザ保存領域だけで操作し、サーバーや利用者端末の記録には書き込みません。配信ファイルがローカルのテスト対象と一致すること、保存・復元、オフライン起動を検証します。実行前に、検証する修正版が公開済みである必要があります。別の配置先では末尾が `/` のURLを `QUEST_BASE_URL` で指定します。`HTTPS_PROXY` / `HTTP_PROXY` がある環境では、そのプロキシを使います。
