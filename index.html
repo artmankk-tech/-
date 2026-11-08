@@ -1,1 +1,167 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b1020"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="QUEST"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icon-192.png"><title>QUEST｜習慣と仕事のRPG</title><link rel="stylesheet" href="./style.css"></head><body><header><div class="top"><div><div class="brand">QUEST / PERSONAL RPG</div><h1>今日のクエスト</h1></div><span class="pill" id="today"></span></div></header><main class="wrap"><div class="actions" style="margin-bottom:12px"><button class="btn secondary" onclick="document.getElementById('help').classList.toggle('hidden')">？ 使い方・iPhone設定</button></div><section class="panel hidden" id="help"><h2>使い方ガイド</h2><ol class="helpsteps"><li><b>仕事／プライベート</b>を切り替えます。XPとミッションは別管理です。</li><li>今日取り組むミッションの左の□をタップ。もう一度押すと取り消せます。</li><li>取りかかれないときは<b>2分スタート</b>。中断後の再開もボーナス対象です。</li><li>XPがたまるとレベルが上がり、報酬が解放されます。無理に全件達成する必要はありません。</li><li>ミッションは下部から追加、右側の鉛筆で編集、×で削除できます。☆で重要ミッションを3件まで選ぶと先頭に表示されます。削除・編集しても獲得済みXPは維持されます。</li><li>タイマーはモードごとに独立しています。2分と15分を選べます。アプリを閉じるとタイマーは終了します。</li><li>週に1回は<b>JSONバックアップ</b>を「ファイル」アプリなどに保存してください。</li></ol><div class="helpbox"><b>iPhoneのホーム画面に追加する</b><ol class="helpsteps"><li>このアプリを<b>HTTPSのURL</b>で公開し、Safariで開きます（HTMLファイルを直接開くだけではPWAとしてインストールできません）。</li><li>Safariの共有ボタンをタップし、<b>「ホーム画面に追加」</b>を選択します。表示位置やメニュー名はiOSのバージョンで異なります。</li><li>追加された<b>QUEST</b>アイコンをタップして起動します。</li></ol></div><p class="foot">データは端末内に保存され、他端末には自動同期されません。Safariとホーム画面アプリでは保存領域が別になる場合があります。プライベートブラウズは避けてください。仕事の機密情報は登録しないでください。</p><button class="btn secondary" onclick="document.getElementById('help').classList.add('hidden')">ガイドを閉じる</button></section><div class="tabs"><button id="workTab" onclick="switchMode('work')">💼 仕事</button><button id="lifeTab" onclick="switchMode('life')">🌿 プライベート</button></div><section class="panel"><div class="status"><div><div class="muted" id="modeLabel"></div><div class="level" id="level"></div></div><div style="text-align:right"><div class="xp" id="xp"></div><div class="muted" id="next"></div></div></div><div class="track"><div class="fill" id="xpbar"></div></div><div class="stats"><div class="stat"><strong id="doneCount"></strong><small>今日の達成</small></div><div class="stat"><strong id="streak"></strong><small>連続達成日</small></div><div class="stat"><strong id="weekly"></strong><small>直近7日 XP</small></div></div></section><div class="sectiontitle"><h2>デイリーミッション</h2><span class="muted">★は重要3件まで</span></div><section class="panel" id="missionList"></section><section class="panel"><h2>すぐ始める</h2><p class="muted">2分だけ着手。中断しても再開できれば評価します。</p><label for="timerDuration">タイマーの長さ（変更するとリセット）</label><select class="input" id="timerDuration" onchange="setDuration(this.value)"><option value="120">2分着手</option><option value="900">15分集中</option></select><div class="timer" id="timer">02:00</div><div class="actions"><button class="btn" onclick="toggleTimer()" id="timerButton">▶ 2分スタート</button><button class="btn secondary" onclick="resetTimer()">リセット</button><button class="btn secondary" onclick="addBonus()">↩ 再開 +5 XP</button></div><p class="foot">タイマー終了後の着手ボーナスは1日1回10 XP。再開ボーナスは1日3回まで。開始したモードに加算されます。画面を閉じるとタイマーは終了します。日をまたいだタイマーには加算しません。</p></section><div class="sectiontitle"><h2>報酬ショップ</h2><span class="muted">XPは消費しません</span></div><section class="panel" id="rewardList"></section><div class="sectiontitle"><h2>週間レポート</h2><span class="muted">直近7日</span></div><section class="panel" id="report"></section><section class="panel"><h2>ミッションを追加</h2><p class="muted">現在のモードだけに追加されます。</p><label for="taskName">ミッション名</label><input class="input" id="taskName" maxlength="70" placeholder="例：重要書類を5分整理"><label for="taskXP">経験値</label><select class="input" id="taskXP"><option value="5">5 XP</option><option value="10" selected>10 XP</option><option value="15">15 XP</option><option value="20">20 XP</option></select><button class="btn" onclick="addMission()">＋ ミッション追加</button></section><section class="panel"><h2>データ管理</h2><p class="foot" id="offlineStatus" role="status">オフライン準備にはHTTPSまたはlocalhostで開いてください。</p><p class="muted">記録はこのブラウザのローカル保存です。機種変更・ブラウザデータ削除に備えてバックアップしてください。</p><div class="actions"><button class="btn secondary" onclick="exportData()">JSONバックアップ</button><button class="btn secondary" onclick="document.getElementById('importFile').click()">バックアップ復元</button><button class="btn danger" onclick="clearMode()">このモードを初期化</button></div><input class="hidden" id="importFile" type="file" accept=".json,application/json" onchange="importData(event)"><p class="foot">業務上の個人情報・顧客情報・社員情報・機密情報は登録しないでください。共有端末やプライベートブラウズでは利用しないでください。</p></section></main><div class="toast" id="toast" role="status" aria-live="polite"></div><script src="./app.js"></script></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="QUEST">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>QUEST｜習慣と仕事のRPG</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header>
+<div class="top">
+<div>
+<div class="brand">QUEST / PERSONAL RPG</div>
+<h1>今日のクエスト</h1>
+</div>
+<span class="pill" id="today">
+</span>
+</div>
+</header>
+<main class="wrap">
+<div class="actions" style="margin-bottom:12px">
+<button class="btn secondary" onclick="document.getElementById('help').classList.toggle('hidden')">？ 使い方・iPhone設定</button>
+</div>
+<section class="panel hidden" id="help">
+<h2>使い方ガイド</h2>
+<ol class="helpsteps">
+<li>
+<b>仕事／プライベート</b>を切り替えます。XPとミッションは別管理です。</li>
+<li>今日取り組むミッションの左の□をタップ。もう一度押すと取り消せます。</li>
+<li>取りかかれないときは<b>2分スタート</b>。中断後の再開もボーナス対象です。</li>
+<li>XPがたまるとレベルが上がり、報酬が解放されます。無理に全件達成する必要はありません。</li>
+<li>ミッションは下部から追加、右側の鉛筆で編集、×で削除できます。☆で重要ミッションを3件まで選ぶと先頭に表示されます。削除・編集しても獲得済みXPは維持されます。</li>
+<li>タイマーはモードごとに独立しています。2分と15分を選べます。再読み込み・アプリの完全終了でタイマーはリセットされます。画面ロック中に通知や音は鳴りません。</li>
+<li>週に1回は<b>JSONバックアップ</b>を「ファイル」アプリなどに保存してください。</li>
+<li>「記録はこの端末に保存されています」と表示されていることを確認してください。保存エラー時は、読み込み直す前にJSONバックアップを保存します。</li>
+</ol>
+<div class="helpbox">
+<b>iPhoneのホーム画面に追加する</b>
+<ol class="helpsteps">
+<li>このアプリを<b>HTTPSのURL</b>で公開し、Safariで開きます（HTMLファイルを直接開くだけではPWAとしてインストールできません）。</li>
+<li>Safariの共有ボタンをタップし、<b>「ホーム画面に追加」</b>を選択します。表示位置やメニュー名はiOSのバージョンで異なります。</li>
+<li>追加された<b>QUEST</b>アイコンをタップして起動します。</li>
+</ol>
+</div>
+<p class="foot">データは端末内に保存され、他端末には自動同期されません。Safariとホーム画面アプリでは保存領域が別になる場合があります。プライベートブラウズは避けてください。仕事の機密情報は登録しないでください。</p>
+<button class="btn secondary" onclick="document.getElementById('help').classList.add('hidden')">ガイドを閉じる</button>
+</section>
+<p class="storage-status" id="storageStatus" role="status" aria-live="polite">
+</p>
+<div class="tabs" aria-label="モード切替">
+<button id="workTab" onclick="switchMode('work')">💼 仕事</button>
+<button id="lifeTab" onclick="switchMode('life')">🌿 プライベート</button>
+</div>
+<section class="panel">
+<div class="status">
+<div>
+<div class="muted" id="modeLabel">
+</div>
+<div class="level" id="level">
+</div>
+</div>
+<div style="text-align:right">
+<div class="xp" id="xp">
+</div>
+<div class="muted" id="next">
+</div>
+</div>
+</div>
+<div class="track">
+<div class="fill" id="xpbar">
+</div>
+</div>
+<div class="stats">
+<div class="stat">
+<strong id="doneCount">
+</strong>
+<small>今日の達成</small>
+</div>
+<div class="stat">
+<strong id="streak">
+</strong>
+<small>連続達成日</small>
+</div>
+<div class="stat">
+<strong id="weekly">
+</strong>
+<small>直近7日 XP</small>
+</div>
+</div>
+</section>
+<div class="sectiontitle">
+<h2>デイリーミッション</h2>
+<span class="muted">★は重要3件まで</span>
+</div>
+<section class="panel" id="missionList">
+</section>
+<section class="panel">
+<h2>すぐ始める</h2>
+<p class="muted">2分だけ着手。中断しても再開できれば評価します。</p>
+<label for="timerDuration">タイマーの長さ（変更するとリセット）</label>
+<select class="input" id="timerDuration" onchange="setDuration(this.value)">
+<option value="120">2分着手</option>
+<option value="900">15分集中</option>
+</select>
+<div class="timer" id="timer">02:00</div>
+<div class="actions">
+<button class="btn" onclick="toggleTimer()" id="timerButton">▶ 2分スタート</button>
+<button class="btn secondary" onclick="resetTimer()">リセット</button>
+<button class="btn secondary" onclick="addBonus()">↩ 再開 +5 XP</button>
+</div>
+<p class="foot">タイマー終了後の着手ボーナスは1日1回10 XP。再開ボーナスは1日3回まで。開始したモードに加算されます。再読み込み・アプリの完全終了でタイマーはリセットされます。画面ロックから戻ると経過時間を反映します。通知・音はありません。日をまたいだタイマーには加算しません。</p>
+</section>
+<div class="sectiontitle">
+<h2>報酬ショップ</h2>
+<span class="muted">XPは消費しません</span>
+</div>
+<section class="panel" id="rewardList">
+</section>
+<div class="sectiontitle">
+<h2>週間レポート</h2>
+<span class="muted">直近7日</span>
+</div>
+<section class="panel" id="report">
+</section>
+<section class="panel">
+<h2>ミッションを追加</h2>
+<p class="muted">現在のモードだけに追加されます。</p>
+<label for="taskName">ミッション名</label>
+<input class="input" id="taskName" maxlength="70" placeholder="例：重要書類を5分整理">
+<label for="taskXP">経験値</label>
+<select class="input" id="taskXP">
+<option value="5">5 XP</option>
+<option value="10" selected>10 XP</option>
+<option value="15">15 XP</option>
+<option value="20">20 XP</option>
+</select>
+<button class="btn" onclick="addMission()">＋ ミッション追加</button>
+</section>
+<section class="panel">
+<h2>データ管理</h2>
+<p class="foot" id="offlineStatus" role="status">オフライン準備にはHTTPSまたはlocalhostで開いてください。</p>
+<p class="muted">記録はこのブラウザのローカル保存です。機種変更・ブラウザデータ削除に備えてバックアップしてください。</p>
+<div class="actions">
+<button class="btn secondary" onclick="exportData()">JSONバックアップ</button>
+<button class="btn secondary" onclick="document.getElementById('importFile').click()">バックアップ復元</button>
+<button class="btn secondary hidden" id="recoveryButton" onclick="exportOriginal()">元の保存データを書き出す</button>
+<button class="btn danger" onclick="clearMode()">このモードを初期化</button>
+</div>
+<input class="hidden" id="importFile" type="file" accept=".json,application/json" onchange="importData(event)">
+<p class="foot">業務上の個人情報・顧客情報・社員情報・機密情報は登録しないでください。共有端末やプライベートブラウズでは利用しないでください。</p>
+</section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite">
+</div>
+<noscript>
+<p>QUESTを使うにはSafariの設定でJavaScriptを有効にしてください。</p>
+</noscript>
+<script src="./app.js">
+</script>
+</body>
+</html>

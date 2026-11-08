@@ -1,3 +1,4 @@
 quest-backup-*.json
+quest-recovery-*.json
 node_modules/
 .DS_Store
