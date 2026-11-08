@@ -16,8 +16,8 @@
 <header>
 <div class="top">
 <div>
-<div class="brand">QUEST / PERSONAL RPG</div>
-<h1>今日のクエスト</h1>
+<div class="brand">QUEST / MY LITTLE LIFE</div>
+<h1>わたしの社員ライフ</h1>
 </div>
 <span class="pill" id="today">
 </span>
@@ -34,7 +34,9 @@
 <b>仕事／プライベート</b>を切り替えます。XPとミッションは別管理です。</li>
 <li>今日取り組むミッションの左の□をタップ。もう一度押すと取り消せます。</li>
 <li>取りかかれないときは<b>2分スタート</b>。中断後の再開もボーナス対象です。</li>
-<li>XPがたまるとレベルが上がり、報酬が解放されます。無理に全件達成する必要はありません。</li>
+<li>ミッション達成で社員が成長し、<b>新入社員から社長</b>を目指せます。昇格すると姿と人生イベントが変わります。休んでも降格しません。</li>
+<li>XPと同じ数の<b>コイン（C）</b>も手に入ります。衣装・部屋・家具と交換すると社員の見た目に反映されます。現実のお金は使いません。同じミッションのコインは各モード1日1回です。</li>
+<li>これまでのXPは育成と初期コインへ引き継ぎます。仕事とプライベートで社員・コイン・持ち物は別々です。無理に全件達成する必要はありません。</li>
 <li>ミッションは下部から追加、右側の鉛筆で編集、×で削除できます。☆で重要ミッションを3件まで選ぶと先頭に表示されます。削除・編集しても獲得済みXPは維持されます。</li>
 <li>タイマーはモードごとに独立しています。2分と15分を選べます。再読み込み・アプリの完全終了でタイマーはリセットされます。画面ロック中に通知や音は鳴りません。</li>
 <li>週に1回は<b>JSONバックアップ</b>を「ファイル」アプリなどに保存してください。</li>
@@ -57,6 +59,18 @@
 <button id="workTab" onclick="switchMode('work')">💼 仕事</button>
 <button id="lifeTab" onclick="switchMode('life')">🌿 プライベート</button>
 </div>
+<section class="panel employee-panel" id="employeePanel" aria-labelledby="employeeHeading">
+<div class="employee-heading"><div><p class="eyebrow" id="employeeWorld">MY EMPLOYEE</p><h2 id="employeeHeading">小さな一歩で、人生が育つ。</h2></div><span class="employee-mark" aria-hidden="true">✦</span></div>
+<div class="employee-stage"><b id="employeeTitle">新入社員</b><span id="careerXP">0 成長XP</span></div>
+<div class="employee-scene" id="employeeScene"></div>
+<div class="employee-wallet"><div><span class="coin-symbol" aria-hidden="true">C</span><strong id="coinBalance">0</strong><small>コイン</small></div><a class="btn secondary" href="#shop">着せ替え・お部屋へ ↗</a></div>
+<div class="next-mission" id="nextMission"></div>
+<div class="life-event"><span class="event-label">LIFE EVENT</span><h3 id="careerEvent"></h3><p id="careerStory"></p></div>
+<p class="career-notice" id="careerNotice" role="status" aria-live="polite"></p>
+<div class="career-next" id="careerNext"></div><div class="track career-track"><div class="fill" id="careerFill"></div></div>
+<details class="career-details"><summary>昇格までの道のりを見る</summary><ol class="career-road" id="careerRoad" aria-label="社員の成長ステップ"></ol></details>
+<p class="foot">成長は消えません。休んだ日も、あなたのペースで。</p>
+</section>
 <section class="panel">
 <div class="status">
 <div>
@@ -116,11 +130,12 @@
 </div>
 <p class="foot">タイマー終了後の着手ボーナスは1日1回10 XP。再開ボーナスは1日3回まで。開始したモードに加算されます。再読み込み・アプリの完全終了でタイマーはリセットされます。画面ロックから戻ると経過時間を反映します。通知・音はありません。日をまたいだタイマーには加算しません。</p>
 </section>
-<div class="sectiontitle">
-<h2>報酬ショップ</h2>
-<span class="muted">XPは消費しません</span>
-</div>
-<section class="panel" id="rewardList">
+<section class="panel shop-panel" id="shop" aria-labelledby="shopHeading">
+<div class="shop-heading"><div><p class="eyebrow">LIFE STORE</p><h2 id="shopHeading">わたしのごほうび</h2></div><span class="shop-balance" id="shopBalance">0 C</span></div>
+<p class="muted">行動のごほうびで、お気に入りの毎日に。</p>
+<div class="shop-tabs" aria-label="ショップの種類"><button id="shop-decor" onclick="selectShop('decor')" aria-pressed="true">🌱 家具</button><button id="shop-outfit" onclick="selectShop('outfit')" aria-pressed="false">👔 衣装</button><button id="shop-room" onclick="selectShop('room')" aria-pressed="false">🏠 部屋</button></div>
+<div id="rewardList"></div>
+<p class="foot">1 XPの行動で1 C。交換するとすぐに使えます。持ち物は何度でも無料で切り替えられます。コインを使っても社員は降格しません。</p>
 </section>
 <div class="sectiontitle">
 <h2>週間レポート</h2>
@@ -161,6 +176,7 @@
 <noscript>
 <p>QUESTを使うにはSafariの設定でJavaScriptを有効にしてください。</p>
 </noscript>
+<script src="./game.js"></script>
 <script src="./app.js">
 </script>
 </body>

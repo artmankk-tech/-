@@ -1,7 +1,7 @@
-// 更新時はv4をv5などへ変更する。同じドメインの別アプリとキャッシュを区別する。
+// 更新時はv5をv6などへ変更する。同じドメインの別アプリとキャッシュを区別する。
 const PREFIX = 'quest-pwa:' + self.registration.scope + ':';
-const CACHE = PREFIX + 'v4';
-const ASSETS = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = PREFIX + 'v5';
+const ASSETS = ['./', './index.html', './style.css', './game.js', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 const ASSET_URLS = new Set(ASSETS.map(path => new URL(path, self.registration.scope).href));
 
 self.addEventListener('install', event => {
