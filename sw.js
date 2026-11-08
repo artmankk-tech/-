@@ -1,16 +1,26 @@
-const CACHE = 'quest-pwa-v3';
+// 更新時はv4をv5などへ変更する。同じドメインの別アプリとキャッシュを区別する。
+const PREFIX = 'quest-pwa:' + self.registration.scope + ':';
+const CACHE = PREFIX + 'v4';
 const ASSETS = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const ASSET_URLS = new Set(ASSETS.map(path => new URL(path, self.registration.scope).href));
+
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // 旧画面が開いている間は待機し、HTMLとJSが別バージョンになるのを防ぐ。
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
 });
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('quest-pwa-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys => Promise.all(
+    keys.filter(key => key.startsWith(PREFIX) && key !== CACHE).map(key => caches.delete(key))
+  )).then(() => self.clients.claim()));
+  // v3以前の共有名キャッシュは別スコープも使う可能性があるため削除しない。
 });
-// 一つのリリースのHTML・JS・CSSをまとめて保持する。
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
+  if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  const shell = new URL('./index.html', self.registration.scope).href;
-  const requestKey = event.request.mode === 'navigate' && url.pathname.startsWith(new URL(self.registration.scope).pathname) ? shell : event.request;
-  event.respondWith(caches.open(CACHE).then(async cache => (await cache.match(requestKey)) || fetch(event.request)));
+  url.search = '';
+  url.hash = '';
+  if (!ASSET_URLS.has(url.href)) return;
+  event.respondWith(caches.open(CACHE).then(async cache =>
+    (await cache.match(url.href)) || fetch(event.request)
+  ));
 });
