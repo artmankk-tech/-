@@ -1,7 +1,7 @@
 {
   "name": "QUEST｜仕事と生活の習慣RPG",
   "short_name": "QUEST",
-  "description": "仕事とプライベートを分けてミッションとXPを管理",
+  "description": "小さな行動で社員を育成。仕事と暮らしの人生ゲーム",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

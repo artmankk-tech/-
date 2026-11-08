@@ -1,6 +1,6 @@
 'use strict';
 
-// 保存キーとJSON version:2を維持して、既存の記録を引き継ぐ。
+// 保存キーを維持し、旧JSON version:1/2を育成付きversion:3へ移行する。
 const KEY = 'quest-rpg-v1';
 const MODES = ['work', 'life'];
 const XP_OPTIONS = [5, 10, 15, 20];
@@ -8,10 +8,6 @@ const $ = id => document.getElementById(id);
 const defaults = {
   work: [['最重要業務を2分だけ始める', 10], ['15分間、1つの業務に集中', 20], ['役職者の進捗を1件確認', 15], ['指示に担当・期限・確認日を設定', 20], ['書類や机を5分整理', 10], ['翌日の最初の業務を決める', 15]],
   life: [['ITパスポートを5問解く', 20], ['間違えた問題を復習', 15], ['自宅を5分片付ける', 10], ['今日の支出を確認', 15], ['15分間学習に集中', 20], ['明日の目標を1つ決める', 10]]
-};
-const rewards = {
-  work: [[30, '好きな飲み物で休憩'], [60, '気分転換の散歩10分'], [100, '休憩中に好きな動画を見る']],
-  life: [[30, '趣味の動画を15分'], [60, 'ゴルフ関連の動画を楽しむ'], [100, '自由時間30分']]
 };
 
 function initial() {
@@ -51,6 +47,7 @@ function validate(v) {
           Array.isArray(d.awards) || Object.entries(d.awards).some(([id, n]) =>
             !validID(id) || !d.done.includes(id) || !XP_OPTIONS.includes(n)))) throw Error('XP記録形式');
     }
+    QuestGame.validate(x, validID);
   }
   return v;
 }
@@ -68,6 +65,7 @@ function migrate(v) {
         }
       }
     }
+    QuestGame.migrate(x);
   }
   return v;
 }
@@ -81,6 +79,7 @@ let data, storageBlocked = false, originalRaw = null, lastSavedRaw = null;
 try {
   originalRaw = localStorage.getItem(KEY);
   data = originalRaw !== null ? migrate(JSON.parse(originalRaw)) : migrate(initial());
+  if (originalRaw && !localStorage.getItem(KEY + '-pre-life-game')) localStorage.setItem(KEY + '-pre-life-game', originalRaw);
   if (originalRaw && !localStorage.getItem(KEY + '-pre-upgrade')) localStorage.setItem(KEY + '-pre-upgrade', originalRaw);
   lastSavedRaw = JSON.stringify(data);
   localStorage.setItem(KEY, lastSavedRaw);
@@ -104,6 +103,7 @@ function save() {
       storageStatus('別の画面で記録が更新されました。上書きを停止しています。この画面のJSONバックアップを保存し、使う画面を1つにして読み込み直してください。', true);
       return false;
     }
+    for (const m of MODES) data[m].game.careerXP = Math.max(data[m].game.careerXP, total(m));
     const raw = JSON.stringify(data);
     localStorage.setItem(KEY, raw);
     lastSavedRaw = raw;
@@ -158,6 +158,57 @@ function streak(m) {
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+
+let shopCategory = 'decor';
+const shownStages = {};
+function renderGame() {
+  const record = data[mode], g = record.game, rank = QuestGame.stageIndex(g.careerXP);
+  const current = QuestGame.stages[rank], next = QuestGame.stages[rank + 1];
+  $('employeeTitle').textContent = current.title;
+  $('employeeWorld').textContent = mode === 'work' ? 'WORK LIFE / 仕事の社員' : 'PRIVATE LIFE / 暮らしの社員';
+  $('employeeScene').innerHTML = QuestGame.scene(record, mode);
+  $('coinBalance').textContent = g.coins.toLocaleString('ja-JP');
+  $('careerXP').textContent = g.careerXP.toLocaleString('ja-JP') + ' 成長XP';
+  const nextTask = [...record.tasks].sort((a, b) => Number(!!b.priority) - Number(!!a.priority)).find(task => !day(mode).done.includes(task.id));
+  $('nextMission').innerHTML = nextTask ? `<div><span class="eyebrow">今日の小さな一歩</span><b>${esc(nextTask.name)}</b></div><button class="btn" onclick="toggleTask('${nextTask.id}')" aria-label="今日の一歩：${esc(nextTask.name)}を達成">達成 ✓</button>` : '<div><span class="eyebrow">今日の一歩、おつかれさま！</span><b>また自分のペースで続けよう。</b></div>';
+  $('careerEvent').textContent = current.event;
+  $('careerStory').textContent = current.story;
+  $('careerNext').textContent = next ? `次は「${next.title}」まで ${next.xp - g.careerXP} XP` : '社長になっても、あなたの物語は続きます';
+  $('careerFill').style.width = (next ? (g.careerXP - current.xp) / (next.xp - current.xp) * 100 : 100) + '%';
+  $('careerRoad').innerHTML = QuestGame.stages.map((stage, i) => `<li class="${i <= rank ? 'reached' : ''} ${i === rank ? 'current' : ''}" ${i === rank ? 'aria-current="step"' : ''}><span>${i < rank ? '✓' : i + 1}</span><b>${stage.title}</b><small>${stage.xp} XP</small></li>`).join('');
+  $('careerNotice').textContent = shownStages[mode] !== undefined && rank > shownStages[mode] ? '昇格しました！「' + current.title + '」の人生が始まります。' : '';
+  if (shownStages[mode] !== undefined && rank > shownStages[mode]) {
+    $('employeePanel').classList.remove('promoted');
+    void $('employeePanel').offsetWidth;
+    $('employeePanel').classList.add('promoted');
+  }
+  shownStages[mode] = rank;
+  $('shopBalance').textContent = g.coins + ' C';
+  for (const slot of ['decor', 'outfit', 'room']) $('shop-' + slot).setAttribute('aria-pressed', String(shopCategory === slot));
+  $('rewardList').innerHTML = QuestGame.catalog.filter(item => item.slot === shopCategory).map(item => {
+    const owned = g.owned.includes(item.id), equipped = item.slot === 'decor' ? g.decor.includes(item.id) : g[item.slot] === item.id;
+    const disabled = (!owned && g.coins < item.cost) || (equipped && item.slot !== 'decor');
+    const action = !owned ? `${item.cost} Cで交換` : equipped ? item.slot === 'decor' ? 'しまう' : '使用中' : item.slot === 'decor' ? '飾る' : item.slot === 'outfit' ? '着る' : '使う';
+    return `<article class="shop-item ${equipped ? 'equipped' : ''}" data-item="${item.id}"><div class="item-icon" aria-hidden="true">${item.icon}</div><div class="item-copy"><h3>${item.name}</h3><p>${item.note}</p><small>${owned ? 'コレクションに追加済み' : `あと ${Math.max(0, item.cost - g.coins)} Cで手に入る`}</small></div><button class="btn ${owned ? 'secondary' : 'shop-buy'}" onclick="exchangeItem('${item.id}')" ${disabled ? 'disabled' : ''} aria-label="${item.name}：${action}">${action}</button></article>`;
+  }).join('');
+}
+function selectShop(slot) {
+  if (!['decor', 'outfit', 'room'].includes(slot)) return;
+  shopCategory = slot;
+  renderGame();
+}
+function exchangeItem(id) {
+  const record = data[mode], before = JSON.parse(JSON.stringify(record.game));
+  const wasOwned = before.owned.includes(id), item = QuestGame.find(id);
+  if (!QuestGame.exchange(record, id)) return;
+  if (!save()) {
+    record.game = before;
+    renderGame();
+    return;
+  }
+  renderGame();
+  toast(wasOwned ? 'お部屋と服装を更新しました' : item.name + 'が仲間入り！');
+}
 function render() {
   refreshDate();
   const m = data[mode], d = day(mode), xp = total(mode), week = Array.from({ length: 7 }, (_, i) => dateOffset(i - 6));
@@ -180,13 +231,13 @@ function render() {
     return `<div class="mission ${done ? 'done' : ''}">
       <button class="check ${done ? 'done' : ''}" onclick="toggleTask('${t.id}')" aria-label="${esc(t.name)}の達成を切り替え" aria-pressed="${done}">${done ? '✓' : ''}</button>
       <div class="body"><b>${esc(t.name)}</b><small>${t.priority ? '★ 今日の重要ミッション' : '毎日のミッション'}</small></div>
-      <span class="points">+${t.xp}</span>
+      <span class="points">+${t.xp} XP <small>${(d.coinTasks || []).includes(t.id) ? 'C受取済' : '+' + t.xp + ' C'}</small></span>
       <button class="iconbtn" onclick="prioritize('${t.id}')" aria-label="${esc(t.name)}の重要ミッション切替" aria-pressed="${!!t.priority}">${t.priority ? '★' : '☆'}</button>
       <button class="iconbtn" onclick="editTask('${t.id}')" aria-label="${esc(t.name)}を編集">✎</button>
       <button class="iconbtn" onclick="deleteTask('${t.id}')" aria-label="${esc(t.name)}を削除">×</button>
     </div>`;
   }).join('') || '<p class="muted">ミッションを追加してください。</p>';
-  $('rewardList').innerHTML = rewards[mode].map(([cost, name]) => `<div class="reward"><div class="body"><b>${esc(name)}</b><small>${cost} XPで解放</small></div><button class="btn secondary" ${xp < cost || (d.claimed || []).includes(cost) ? 'disabled' : ''} onclick="claim(${cost})">${(d.claimed || []).includes(cost) ? '受取済' : xp >= cost ? '受け取る' : '未解放'}</button></div>`).join('');
+  renderGame();
   const max = Math.max(20, ...week.map(k => earned(mode, k)));
   $('report').innerHTML = week.map(k => `<div class="barrow"><span class="name">${k.slice(5).replace('-', '/')}</span><div class="track"><div class="fill" style="width:${earned(mode, k) / max * 100}%"></div></div><span class="value">${earned(mode, k)}</span></div>`).join('') + '<p class="foot">過去の記録は保持されます。未達成の日に減点はありません。</p>';
 }
@@ -202,13 +253,19 @@ function toggleTask(id) {
   const t = data[mode].tasks.find(t => t.id === id);
   if (!t) return;
   const d = mutableDay();
+  let coins = 0;
   d.awards ??= {};
   if (d.done.includes(id)) {
     d.done = d.done.filter(x => x !== id);
     delete d.awards[id];
-  } else { d.done.push(id); d.awards[id] = t.xp; }
-  save();
+  } else {
+    d.done.push(id);
+    d.awards[id] = t.xp;
+    coins = QuestGame.rewardTask(data[mode], d, t);
+  }
+  const saved = save();
   render();
+  if (saved && coins) toast('小さな一歩！ +' + t.xp + ' XP / +' + coins + ' C');
 }
 function prioritize(id) {
   const t = data[mode].tasks.find(t => t.id === id);
@@ -255,20 +312,10 @@ function addBonus() {
   if ((d.restarts || 0) >= 3) return toast('再開ボーナスは1日3回まで');
   d.restarts = (d.restarts || 0) + 1;
   d.bonus = (d.bonus || 0) + 5;
+  QuestGame.credit(data[mode], 5);
   const saved = save();
   render();
-  if (saved) toast('再開 +5 XP');
-}
-function claim(cost) {
-  refreshDate();
-  if (!rewards[mode].some(([n]) => n === cost)) return;
-  const d = mutableDay();
-  if (total(mode) < cost || (d.claimed || []).includes(cost)) return;
-  d.claimed ??= [];
-  d.claimed.push(cost);
-  const saved = save();
-  render();
-  if (saved) toast('報酬を獲得！');
+  if (saved) toast('おかえりなさい！ +5 XP / +5 C');
 }
 
 function updateTimer() {
@@ -291,7 +338,8 @@ function tickTimers() {
     if (!d.timer) {
       d.timer = 1;
       d.bonus = (d.bonus || 0) + 10;
-      if (save()) toast((m === 'work' ? '仕事' : 'プライベート') + '：着手成功 +10 XP');
+      QuestGame.credit(data[m], 10);
+      if (save()) toast((m === 'work' ? '仕事' : 'プライベート') + '：着手成功 +10 XP / +10 C');
     } else toast('集中できました！');
     render();
   }
@@ -325,7 +373,7 @@ function downloadJSON(raw, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 function exportData() {
-  downloadJSON(JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), data }, null, 2), 'quest-backup-' + dateKey() + '.json');
+  downloadJSON(JSON.stringify({ version: 3, exportedAt: new Date().toISOString(), data }, null, 2), 'quest-backup-' + dateKey() + '.json');
 }
 function exportOriginal() {
   if (originalRaw !== null) downloadJSON(originalRaw, 'quest-recovery-' + dateKey() + '.json');
@@ -340,9 +388,10 @@ function importData(e) {
   r.onload = () => {
     try {
       const obj = JSON.parse(r.result);
-      if (![1, 2].includes(obj.version)) throw Error('バージョン不正');
+      if (![1, 2, 3].includes(obj.version)) throw Error('バージョン不正');
+      if (obj.version === 3 && MODES.some(m => !obj.data?.[m]?.game)) throw Error('育成データなし');
       const v = migrate(obj.data);
-      if (!confirm('仕事・プライベート両方を置き換えます。現在のJSONバックアップは保存済みですか？')) return;
+      if (!confirm('仕事・プライベート両方の記録・社員の成長・コイン・持ち物を置き換えます。現在のJSONバックアップは保存済みですか？')) return;
       const old = localStorage.getItem(KEY), raw = JSON.stringify(v);
       if (old) localStorage.setItem(KEY + '-before-restore', old);
       // 保存が成功するまで、画面の記録とタイマーを変更しない。
@@ -363,7 +412,7 @@ function importData(e) {
   r.readAsText(f);
 }
 function clearMode() {
-  if (!confirm((mode === 'work' ? '仕事' : 'プライベート') + 'の記録・追加ミッションを初期化します。元に戻せません。バックアップを推奨します。')) return;
+  if (!confirm((mode === 'work' ? '仕事' : 'プライベート') + 'の記録・追加ミッション・社員の成長・コイン・持ち物を初期化します。元に戻せません。バックアップを推奨します。')) return;
   const previous = data[mode];
   data[mode] = migrate(initial())[mode];
   if (!save()) { data[mode] = previous; return; }

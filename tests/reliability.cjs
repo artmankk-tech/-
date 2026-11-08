@@ -8,7 +8,7 @@ const { execFileSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const baseline = '8c3fd318894ede56a64dd678177f8d77362e2789';
-const assets = ['index.html', 'app.js', 'style.css', 'sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const assets = ['index.html', 'game.js', 'app.js', 'style.css', 'sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png' };
 let legacy = false;
 const server = http.createServer((req, res) => {
@@ -188,14 +188,15 @@ function watch(page, errors) {
     await page.goto(base + '/-/');
     await page.waitForFunction(() => typeof storageStatus === 'function');
     await ready(page);
-    assert.equal(await page.evaluate(() => localStorage.getItem(KEY)), oldRecord);
+    assert.deepEqual(await page.evaluate(() => ({ tasks: data.work.tasks, days: Object.fromEntries(Object.entries(data.work.days).map(([date, day]) => { const { coinTasks, ...rest } = day; return [date, rest]; })) })), (() => { const record = JSON.parse(oldRecord).work; return { tasks: record.tasks, days: record.days }; })());
+    assert.equal(await page.evaluate(() => data.work.game.coins), 10);
     assert.equal(await page.locator('#xp').textContent(), '10 XP');
     assert(await page.evaluate(async () => (await caches.keys()).includes('quest-pwa-unrelated')));
     await upgrade.setOffline(true);
     await page.reload(); assert.equal(await page.locator('#xp').textContent(), '10 XP');
     await other.reload(); assert.equal(await other.title(), 'QUEST｜習慣と仕事のRPG');
     await upgrade.close();
-    console.log('PASS: real v3→v4 update waits for old tab, retains records, preserves other scope/offline caches');
+    console.log('PASS: real v3→v5 update waits for old tab, retains XP/tasks, migrates game, preserves other scope/offline caches');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 })().then(() => server.close()).catch(error => { console.error(error); server.close(); process.exitCode = 1; });
