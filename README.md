@@ -6,7 +6,7 @@
 
 リポジトリ：**https://github.com/artmankk-tech/-**
 
-社員育成版v5です。過去のミッション・XPを引き継ぎ、成長とアプリ内コインを追加しました。iPhone実機での最終確認は未完了です。詳しくは [TEST_RESULTS.md](TEST_RESULTS.md) を参照してください。
+社員育成版v5を公開しました。過去のミッション・XPを引き継ぎ、成長とアプリ内コインを追加しました。公開URLで家具交換、育成付きJSONの保存・復元、オフラインでの操作と再起動を確認済みです。iPhone実機での最終確認は未完了です。詳しくは [TEST_RESULTS.md](TEST_RESULTS.md) を参照してください。
 
 ## iPhoneで始める
 

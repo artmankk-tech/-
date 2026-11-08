@@ -54,7 +54,20 @@ JavaScript構文チェックと `git diff --check` も通過。幅390pxの初期
 
 https://artmankk-tech.github.io/-/
 
-公開後、`node tests/published.cjs` で配信ファイルと育成機能を再確認します。公開済みv4の検証と公開履歴はGitの履歴から参照できます。
+[PR #2](https://github.com/artmankk-tech/-/pull/2) をmainへマージし、コミット `3b4a6b4b3ee5c551eb3a1cc6b9ffb18f5171cf80` の [GitHub Pages公開処理](https://github.com/artmankk-tech/-/actions/runs/42467184115) はsuccessで完了しました。
+
+その後、新しいブラウザ保存領域で `node tests/published.cjs` を実行し、実際の公開URLで次を確認しました。
+
+- HTTPS・HTTP 200。HTML、game.js、app.js、CSS、service worker、manifest、両アイコンのSHA-256が修正版と一致
+- PWAスコープとservice workerによるページ制御
+- 仕事10 XPとプライベート25 XPを独立して記録。家具を20 Cで交換し、プライベートの残高5 Cと持ち物へ反映
+- 育成付きJSON version:3を実際にダウンロード。初期化後にそのJSONを復元し、再読み込み後もXP・コイン・持ち物を保持
+- 不正JSONで元の保存記録が変わらないこと
+- 幅320・375・390・430・844pxで横はみ出しなし
+- 通信を切断し、クエリ付きURLで起動。ミッション取り消しと再起動後もコイン・記録を保持
+- JavaScript実行エラーなし
+
+利用者端末の保存領域には触れていません。公開URLの試験は新版を初回起動する形で行い、旧版からの更新試験は前述のローカルでのv3/v4→v5試験です。iPhone実機での更新は未確認です。公開済みv4の検証・公開履歴はGitの履歴から参照できます。
 
 ## 未確認事項
 
