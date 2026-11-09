@@ -1,6 +1,6 @@
-// 更新時はv6をv7などへ変更する。同じドメインの別アプリとキャッシュを区別する。
+// 更新時はv7をv8などへ変更する。同じドメインの別アプリとキャッシュを区別する。
 const PREFIX = 'quest-pwa:' + self.registration.scope + ':';
-const CACHE = PREFIX + 'v6';
+const CACHE = PREFIX + 'v7';
 const ASSETS = ['./', './index.html', './style.css', './game.js', './app.js', './assets/employee-atlas.png', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 const ASSET_URLS = new Set(ASSETS.map(path => new URL(path, self.registration.scope).href));
 

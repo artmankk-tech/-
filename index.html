@@ -60,12 +60,19 @@
 <button id="workTab" onclick="switchMode('work')">💼 仕事</button>
 <button id="lifeTab" onclick="switchMode('life')">🌿 プライベート</button>
 </div>
+<section class="panel action-panel" aria-label="今日の操作">
+<div class="next-mission" id="nextMission"></div>
+<nav class="quick-nav" aria-label="アプリの操作メニュー">
+<a href="#missionList">ミッション</a>
+<a href="#focusTimer">タイマー</a>
+<a href="#shop">着せ替え</a>
+</nav>
+</section>
 <section class="panel employee-panel" id="employeePanel" aria-labelledby="employeeHeading">
 <div class="employee-heading"><div><p class="eyebrow" id="employeeWorld">MY EMPLOYEE</p><h2 id="employeeHeading">小さな一歩で、人生が育つ。</h2></div><span class="employee-mark" aria-hidden="true">✦</span></div>
 <div class="employee-stage"><b id="employeeTitle">新入社員</b><span id="careerXP">0 成長XP</span></div>
 <div class="employee-scene" id="employeeScene"></div>
 <div class="employee-wallet"><div><span class="coin-symbol" aria-hidden="true">C</span><strong id="coinBalance">0</strong><small>コイン</small></div><a class="btn secondary" href="#shop">着せ替え・お部屋へ ↗</a></div>
-<div class="next-mission" id="nextMission"></div>
 <div class="life-event"><span class="event-label">LIFE EVENT</span><h3 id="careerEvent"></h3><p id="careerStory"></p></div>
 <p class="career-notice" id="careerNotice" role="status" aria-live="polite"></p>
 <div class="career-next" id="careerNext"></div><div class="track career-track"><div class="fill" id="careerFill"></div></div>
@@ -115,7 +122,7 @@
 </div>
 <section class="panel" id="missionList">
 </section>
-<section class="panel">
+<section class="panel" id="focusTimer">
 <h2>すぐ始める</h2>
 <p class="muted">2分だけ着手。中断しても再開できれば評価します。</p>
 <label for="timerDuration">タイマーの長さ（変更するとリセット）</label>
