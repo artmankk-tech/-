@@ -11,7 +11,7 @@ globalThis.QuestGame = (() => {
     { xp: 1500, title: '社長', event: '自分らしい会社ができた', story: '物語はまだ続く。これからも、無理のない一歩を。', color: '#425f73' }
   ];
   const catalog = [
-    { id: 'outfit-start', slot: 'outfit', name: 'いつもの制服', cost: 0, icon: '👔', color: null, note: '昇格に合わせて色が変わる' },
+    { id: 'outfit-start', slot: 'outfit', name: 'いつもの制服', cost: 0, icon: '👔', color: null, note: '昇格に合わせて着こなしが変わる' },
     { id: 'outfit-mint', slot: 'outfit', name: 'ミントのジャケット', cost: 30, icon: '🧥', color: '#55aa91', note: '軽やかな気分で、次の一歩' },
     { id: 'outfit-coral', slot: 'outfit', name: 'コーラルのセットアップ', cost: 60, icon: '🎀', color: '#d57d77', note: 'お気に入りを着て出かけよう' },
     { id: 'outfit-night', slot: 'outfit', name: '星空のスーツ', cost: 120, icon: '✨', color: '#7264a9', note: 'きらりと光る、自分らしさ' },
@@ -77,46 +77,42 @@ globalThis.QuestGame = (() => {
     return true;
   }
 
+  function portraitFrame(record) {
+    const variants = { 'outfit-mint': 6, 'outfit-coral': 7, 'outfit-night': 8 };
+    return variants[record.game.outfit] ?? stageIndex(record.game.careerXP);
+  }
+
   function scene(record, mode) {
     const g = record.game, rank = stageIndex(g.careerXP), outfit = find(g.outfit), room = find(g.room);
-    const jacket = outfit.color || stages[rank].color;
-    const sun = g.room === 'room-sky' ? '#f4ac9c' : '#f6cd76';
+    const frame = portraitFrame(record);
+    const sun = g.room === 'room-sky' ? '#efb9ae' : '#efd194';
     const plant = g.decor.includes('decor-plant');
     const books = g.decor.includes('decor-books');
     const cat = g.decor.includes('decor-cat');
-    return `<svg viewBox="0 0 360 232" role="img" aria-label="${stages[rank].title}の社員。${room.name}で${outfit.name}を着ています。">
-      <rect width="360" height="232" rx="16" fill="${room.color}"/>
-      <path d="M0 170H360V232H0Z" fill="#d4c3ad"/><path d="M0 170H360M0 201H360M72 170L32 232M178 170V232M281 170L323 232" stroke="#b5a58f" stroke-width="1.5" opacity=".45"/>
-      <rect x="218" y="23" width="118" height="109" rx="7" fill="#f9f7ed"/>
-      <rect x="225" y="30" width="104" height="95" rx="3" fill="${g.room === 'room-sky' ? '#96afce' : '#bbdce0'}"/>
-      <circle cx="301" cy="52" r="13" fill="${sun}"/>
-      <path d="M226 125V90H243V76H260V101H274V66H295V91H313V83H328V125" fill="#7da6b0" opacity=".6"/>
-      <path d="M276 29V126M224 79H330" stroke="#f9f7ed" stroke-width="5"/>
-      <rect x="25" y="31" width="69" height="49" rx="5" fill="#fff9e9"/>
-      <path d="M41 64L53 52L64 59L81 43" stroke="${jacket}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      ${books ? '<rect x="23" y="109" width="62" height="7" rx="3" fill="#a27d64"/><path d="M29 108V85H38V108M42 108V80H52V108M58 108V89H67V108M70 108L65 84L74 82L79 108" fill="#8b9c9f" stroke="#f6e3bb" stroke-width="2"/>' : ''}
-      <ellipse cx="148" cy="211" rx="44" ry="8" fill="#927c66" opacity=".19"/>
-      <path d="M126 173L124 205H140L147 179L154 205H170L166 173" fill="#435367"/>
-      <rect x="119" y="201" width="23" height="9" rx="4" fill="#34404c"/><rect x="152" y="201" width="23" height="9" rx="4" fill="#34404c"/>
-      <path d="M122 118Q145 108 169 119L181 166L166 171L163 138L167 179H123L127 138L121 166L107 163Z" fill="${jacket}"/>
-      <path d="M136 116L146 141L156 116" fill="#fff8e8"/><path d="M142 122L147 119L151 123L149 143L145 149L141 143Z" fill="${rank >= 3 ? '#efbf62' : '#486880'}"/>
-      <circle cx="114" cy="165" r="7" fill="#f1c3a0"/><circle cx="175" cy="168" r="7" fill="#f1c3a0"/>
-      <rect x="158" y="138" width="10" height="13" rx="2" fill="#fff7df"/><path d="M162 135V141" stroke="#536b77" stroke-width="2"/>
-      <circle cx="147" cy="80" r="35" fill="#f4caab"/>
-      <path d="M112 81Q104 37 144 38Q185 36 183 80L172 65Q149 71 133 56L119 83Z" fill="#4a4142"/>
-      <circle cx="134" cy="83" r="2.5" fill="#413a3d"/><circle cx="159" cy="83" r="2.5" fill="#413a3d"/>
-      <path d="M140 98Q147 104 154 98" fill="none" stroke="#a05f5d" stroke-width="2.5" stroke-linecap="round"/>
-      <ellipse cx="125" cy="94" rx="6" ry="3" fill="#e9a59a" opacity=".65"/><ellipse cx="168" cy="94" rx="6" ry="3" fill="#e9a59a" opacity=".65"/>
-      ${rank >= 2 ? '<g fill="none" stroke="#4c5666" stroke-width="2"><rect x="124" y="76" width="20" height="14" rx="5"/><rect x="150" y="76" width="20" height="14" rx="5"/><path d="M144 81H150"/></g>' : ''}
-      <path d="M195 159H307V170H195Z" fill="#bd936e"/><path d="M202 170V209M299 170V209" stroke="#8e7058" stroke-width="7"/>
-      <path d="M223 120H274L279 155H219Z" fill="#526a7e"/><path d="M216 155H283V159H216Z" fill="#7e98a7"/><circle cx="249" cy="139" r="4" fill="#aac9cc"/>
-      <path d="M291 145H301V155H291Z" fill="#fff5db"/><path d="M301 147Q310 146 306 153H301" fill="none" stroke="#fff5db" stroke-width="2"/>
-      ${plant ? '<path d="M34 176H63L59 207H38Z" fill="#c88c74"/><path d="M49 180V136M49 162Q22 162 29 145Q48 144 49 162M49 150Q73 151 70 132Q49 131 49 150" fill="#638e75" stroke="#638e75" stroke-width="3"/>' : ''}
-      ${cat ? '<ellipse cx="290" cy="211" rx="27" ry="9" fill="#b59889" opacity=".3"/><path d="M266 204Q267 184 288 185Q308 185 313 202Q322 190 327 198Q329 211 310 209H274Z" fill="#e5af76"/><path d="M270 192L272 181L281 188L290 183L294 194" fill="#e5af76"/><path d="M274 196L278 197M284 197L288 196" stroke="#795e4d" stroke-width="2" stroke-linecap="round"/>' : ''}
-      ${rank >= 4 ? '<path d="M30 21H48V31Q48 44 39 44Q30 44 30 31Z" fill="#d9ae56"/><path d="M30 25H25Q23 37 32 37M48 25H53Q55 37 46 37M39 44V49M32 50H46" stroke="#d9ae56" stroke-width="3" fill="none"/>' : ''}
-      <rect x="12" y="216" width="84" height="9" rx="4" fill="#fff9eb" opacity=".5"/>
-      <text x="17" y="223" font-size="6" letter-spacing="1" fill="#6a706a">${mode === 'work' ? 'MY WORK LIFE' : 'MY PRIVATE LIFE'}</text>
-    </svg>`;
+    return `<div class="employee-art" data-frame="${frame}">
+      <svg class="room-scene" viewBox="0 0 360 300" role="img" aria-label="${stages[rank].title}の社員、寡黙な実力派。${room.name}で${outfit.name}を着ています。">
+        <rect width="360" height="300" rx="16" fill="${room.color}"/>
+        <path d="M0 245H360V300H0Z" fill="#bbaa9b"/>
+        <path d="M0 245H360M0 276H360M70 245L35 300M180 245V300M290 245L326 300" stroke="#998a80" opacity=".3"/>
+        <rect x="198" y="19" width="142" height="189" rx="3" fill="#f2f0e7"/>
+        <rect x="204" y="25" width="130" height="177" fill="${g.room === 'room-sky' ? '#91a4c1' : '#b5c9ce'}"/>
+        <circle cx="304" cy="53" r="18" fill="${sun}"/>
+        <path d="M204 202V133H221V98H240V140H251V85H278V119H299V145H316V105H334V202" fill="#6b8799" opacity=".45"/>
+        <path d="M265 24V204M202 115H336" stroke="#f2f0e7" stroke-width="5"/>
+        <rect x="20" y="77" width="77" height="47" rx="3" fill="#fffaf0"/>
+        <path d="M34 109L47 98L60 103L82 89" stroke="#6c8b8b" stroke-width="3" stroke-linecap="round" fill="none"/>
+        ${books ? '<path d="M14 157H90" stroke="#8e7866" stroke-width="6"/><path d="M22 154V132H31V154M36 154V126H47V154M52 154V135H61V154M69 154L65 131L74 129L79 154" fill="#6d8395" stroke="#e3d1b2" stroke-width="2"/>' : ''}
+        <path d="M5 228H113V236H5Z" fill="#a68a70"/><path d="M15 236V279M103 236V279" stroke="#776656" stroke-width="5"/>
+        <path d="M44 195H83L87 223H40Z" fill="#4c6375"/><path d="M36 223H92V228H36Z" fill="#839ba5"/><circle cx="64" cy="208" r="3" fill="#c1d1d6"/>
+        ${plant ? '<path d="M13 209H36L32 230H17Z" fill="#b47c67"/><path d="M24 211V173M24 197Q4 196 7 183Q23 182 24 197M24 185Q44 187 41 170Q25 170 24 185" fill="#5a8271" stroke="#5a8271" stroke-width="2"/>' : ''}
+        ${cat ? '<ellipse cx="50" cy="287" rx="26" ry="7" fill="#7f7063" opacity=".2"/><path d="M28 278Q29 260 47 261Q65 260 71 277Q83 264 84 275Q84 285 67 284H35Z" fill="#d6a26f"/><path d="M32 267L33 258L42 264L50 259L54 269" fill="#d6a26f"/><path d="M34 272L39 273M44 273L49 272" stroke="#775c4b" stroke-width="2"/>' : ''}
+        ${rank >= 4 ? '<path d="M24 164H40V173Q40 184 32 184Q24 184 24 173Z" fill="#c1a05a"/><path d="M24 168H20Q17 178 25 178M40 168H44Q46 178 39 178M32 184V189M26 190H38" stroke="#c1a05a" stroke-width="2" fill="none"/>' : ''}
+        <text x="16" y="296" font-size="6" letter-spacing="1" fill="#5d6467">${mode === 'work' ? 'MY WORK LIFE' : 'MY PRIVATE LIFE'}</text>
+      </svg>
+      <div class="employee-portrait" aria-hidden="true" style="background-position:${frame % 3 * 50}% ${Math.floor(frame / 3) * 50}%"></div>
+      <div class="portrait-label"><span>MY PARTNER</span><b>寡黙な実力派</b></div>
+    </div>`;
   }
-  return { stages, catalog, find, baseXP, stageIndex, validate, migrate, rewardTask, exchange, scene, credit };
+
+  return { stages, catalog, find, baseXP, stageIndex, validate, migrate, rewardTask, exchange, scene, portraitFrame, credit };
 })();

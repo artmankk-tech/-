@@ -35,15 +35,20 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
     assert.equal(await page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).scope), base.href);
 
     // 配信された実ファイルと、テスト対象のローカルファイルが一致することを確認。
-    for (const filename of ['index.html', 'game.js', 'app.js', 'style.css', 'sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png']) {
+    for (const filename of ['index.html', 'game.js', 'app.js', 'style.css', 'sw.js', 'assets/employee-atlas.png', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png']) {
       const bytes = await page.evaluate(async name => {
         const result = await fetch('./' + name);
         if (!result.ok) throw Error(name + ': HTTP ' + result.status);
-        return Array.from(new Uint8Array(await result.arrayBuffer()));
+        return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await result.arrayBuffer())));
       }, filename);
-      assert.equal(digest(Buffer.from(bytes)), digest(fs.readFileSync(path.join(root, filename))), 'published file: ' + filename);
+      assert.equal(Buffer.from(bytes).toString('hex'), digest(fs.readFileSync(path.join(root, filename))), 'published file: ' + filename);
     }
     console.log('PASS: public HTTPS, exact release assets, PWA scope and control');
+    await page.evaluate(async () => {
+      const image = new Image(); image.src = './assets/employee-atlas.png'; await image.decode();
+      if (!image.naturalWidth || image.naturalWidth !== image.naturalHeight || image.naturalWidth % 3) throw Error('Invalid character atlas');
+    });
+    assert.match(await page.locator('#employeeScene').textContent(), /寡黙な実力派/);
     if (process.env.QUEST_SCREENSHOT) await page.screenshot({ path: process.env.QUEST_SCREENSHOT, fullPage: true });
 
     await page.locator('.check').first().tap();
@@ -94,6 +99,7 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
     }
     await context.setOffline(true);
     await page.goto(new URL('index.html?source=homescreen', base).href);
+    assert(await page.evaluate(async () => (await fetch('./assets/employee-atlas.png', { cache: 'reload' })).ok), 'offline character image');
     assert.equal(await page.locator('#xp').textContent(), '10 XP');
     await page.locator('#lifeTab').tap();
     assert.equal(await page.locator('#xp').textContent(), '25 XP');
