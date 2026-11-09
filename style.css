@@ -25,3 +25,10 @@ header,.wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(
 .employee-wallet,.shop-heading{flex-wrap:wrap}.employee-wallet>div{min-width:0}.employee-wallet strong{min-width:0}.shop-heading>div{min-width:0}
 .next-mission{display:flex;gap:12px;align-items:center;padding:12px;background:#102332;border:1px solid #52776b;border-radius:12px}.next-mission>div{flex:1;min-width:0}.next-mission .eyebrow{display:block;font-size:10px;margin-bottom:6px;letter-spacing:1px}.next-mission b{display:block;font-size:12px;line-height:1.7;overflow-wrap:anywhere}.next-mission .btn{padding:10px;font-size:12px;flex-shrink:0;background:#426d5e;border-color:#719682}.career-details summary{font-size:12px;color:#c9dcda;min-height:44px;cursor:pointer;display:flex;align-items:center;gap:6px}.career-details summary::before{content:'＋';font-size:16px}.career-details[open] summary::before{content:'−'}.career-details summary:focus-visible{outline:3px solid #8fc5ff;outline-offset:2px}
 .mission .points{flex:1 1 0;min-width:0}.points small{display:block;margin-top:3px}
+
+.employee-art{position:relative;width:100%;max-width:440px;aspect-ratio:6/5;margin:auto;isolation:isolate;overflow:hidden}
+.employee-art .room-scene{position:absolute;inset:0;width:100%;height:100%;max-height:none}
+.employee-portrait{position:absolute;right:-4%;bottom:0;height:96%;aspect-ratio:1;background-image:url('./assets/employee-atlas.png');background-size:300% 300%;background-repeat:no-repeat;filter:drop-shadow(0 4px 6px #20304422);-webkit-mask-image:linear-gradient(#000 95%,transparent 100%);mask-image:linear-gradient(#000 95%,transparent 100%)}
+.portrait-label{position:absolute;top:13px;left:13px;display:grid;gap:5px;background:#f5f1e5de;border:1px solid #6d7f8233;border-radius:7px;padding:8px 10px;line-height:1.2;color:#344554;box-shadow:0 2px 8px #21333d0a}
+.portrait-label span{font-size:8px;letter-spacing:1.8px}.portrait-label b{font-size:12px;font-weight:700}
+.employee-art::before{content:'';display:block;padding-top:83.333333%}.employee-portrait{width:80%}

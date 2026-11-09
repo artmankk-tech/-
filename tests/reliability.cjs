@@ -8,7 +8,7 @@ const { execFileSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const baseline = '8c3fd318894ede56a64dd678177f8d77362e2789';
-const assets = ['index.html', 'game.js', 'app.js', 'style.css', 'sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const assets = ['index.html', 'game.js', 'app.js', 'style.css', 'sw.js', 'assets/employee-atlas.png', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png' };
 let legacy = false;
 const server = http.createServer((req, res) => {
@@ -196,7 +196,7 @@ function watch(page, errors) {
     await page.reload(); assert.equal(await page.locator('#xp').textContent(), '10 XP');
     await other.reload(); assert.equal(await other.title(), 'QUEST｜習慣と仕事のRPG');
     await upgrade.close();
-    console.log('PASS: real v3→v5 update waits for old tab, retains XP/tasks, migrates game, preserves other scope/offline caches');
+    console.log('PASS: real v3→v6 update waits for old tab, retains XP/tasks, migrates game, preserves other scope/offline caches');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 })().then(() => server.close()).catch(error => { console.error(error); server.close(); process.exitCode = 1; });

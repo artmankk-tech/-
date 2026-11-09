@@ -7,7 +7,7 @@ const http = require('node:http');
 const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const baseline = 'fc77fb7dcb279e12edf3ff0224396ee85f237c73';
-const files = ['index.html', 'game.js', 'app.js', 'style.css', 'sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const files = ['index.html', 'game.js', 'app.js', 'style.css', 'sw.js', 'assets/employee-atlas.png', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png' };
 let legacy = true;
 const server = http.createServer((req, res) => {
@@ -57,7 +57,7 @@ async function state(page) { return page.evaluate(() => JSON.parse(JSON.stringif
     await page.evaluate(() => navigator.serviceWorker.getRegistration().then(r => r.update()));
     await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistration()).waiting);
     await page.reload();
-    assert.equal(await page.evaluate(() => typeof QuestGame), 'undefined', 'v4 keeps running while v5 waits');
+    assert.equal(await page.evaluate(() => typeof QuestGame), 'undefined', 'v4 keeps running while v6 waits');
     await page.close();
     page = await context.newPage(); watch(page, errors);
     await page.goto(url); await ready(page);
@@ -69,7 +69,7 @@ async function state(page) { return page.evaluate(() => JSON.parse(JSON.stringif
     assert.equal(await page.evaluate(() => localStorage.getItem(KEY + '-pre-life-game')), original);
     await page.reload();
     assert.equal((await state(page)).work.game.coins, 90, 'migration runs only once');
-    console.log('PASS: actual v4→v5 update waits, preserves both modes, converts historical XP once, retains original');
+    console.log('PASS: actual v4→v6 update waits, preserves both modes, converts historical XP once, retains original');
 
     await page.locator('#nextMission button').tap();
     assert.equal(await page.locator('#employeeTitle').textContent(), '一人前');
@@ -89,6 +89,7 @@ async function state(page) { return page.evaluate(() => JSON.parse(JSON.stringif
     await page.locator('#shop-outfit').tap();
     await page.getByRole('button', { name: 'ミントのジャケット：30 Cで交換', exact: true }).tap();
     assert.match(await page.locator('#employeeScene svg').getAttribute('aria-label'), /ミントのジャケット/);
+    assert.equal(await page.locator('.employee-art').getAttribute('data-frame'), '6');
     await page.getByRole('button', { name: 'いつもの制服：着る', exact: true }).tap();
     await page.getByRole('button', { name: 'ミントのジャケット：着る', exact: true }).tap();
     assert.equal((await state(page)).work.game.coins, 50, 'owned outfits are free to switch');
@@ -168,6 +169,9 @@ async function state(page) { return page.evaluate(() => JSON.parse(JSON.stringif
       await upload(page, rank);
       assert.equal(await page.locator('#employeeTitle').textContent(), title);
       assert.match(await page.locator('#employeeScene svg').getAttribute('aria-label'), new RegExp(title));
+      await page.locator('#shop-outfit').tap();
+      await page.getByRole('button', { name: 'いつもの制服：着る', exact: true }).tap();
+      assert.equal(await page.locator('.employee-art').getAttribute('data-frame'), String([0, 100, 300, 600, 1000, 1500].indexOf(xp)));
     }
     const large = structuredClone(backup); large.data.work.game.coins = Number.MAX_SAFE_INTEGER;
     await upload(page, large);
