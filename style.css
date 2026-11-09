@@ -32,3 +32,5 @@ header,.wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(
 .portrait-label{position:absolute;top:13px;left:13px;display:grid;gap:5px;background:#f5f1e5de;border:1px solid #6d7f8233;border-radius:7px;padding:8px 10px;line-height:1.2;color:#344554;box-shadow:0 2px 8px #21333d0a}
 .portrait-label span{font-size:8px;letter-spacing:1.8px}.portrait-label b{font-size:12px;font-weight:700}
 .employee-art::before{content:'';display:block;padding-top:83.333333%}.employee-portrait{width:80%}
+
+.action-panel{padding:12px;border-color:#52776b}.quick-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}.quick-nav a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 4px;border:1px solid #405a70;border-radius:9px;background:#1c2941;color:#d9e8f2;font-size:12px;text-decoration:none}.quick-nav a:focus-visible{outline:3px solid #8fc5ff;outline-offset:2px}#missionList,#focusTimer,#shop{scroll-margin-top:16px}
